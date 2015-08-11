@@ -1,3 +1,7 @@
+define(function(require) {
+
+require("../third_party/jquery.mobile.vmouse.js");
+
 $.extend(KhanUtil, {
     initUnitCircle: function(degrees) {
         var graph = KhanUtil.currentGraph;
@@ -181,7 +185,7 @@ $.extend(KhanUtil, {
 
                         // Now ((2pi * revolutions) + angle) represents the full angle
                         // Redraw the angle only if it's changed
-                        if (graph.angle != angle + (graph.revolutions * 2 * Math.PI)) {
+                        if (graph.angle !== angle + (graph.revolutions * 2 * Math.PI)) {
                             KhanUtil.setAngle(angle + (graph.revolutions * 2 * Math.PI));
                         }
 
@@ -271,9 +275,9 @@ $.extend(KhanUtil, {
         sinText = prettyAngles[sinText] ? prettyAngles[sinText] : sinText;
 
         // Position the distance labels and right-angle marker based on quadrant
-        if (!(angle % Math.PI)) {
+        if (angle % Math.PI === 0) {
             graph.cosLabel = graph.label([Math.cos(angle) / 2, 0], cosText, "below");
-        } else if (!(angle % (Math.PI / 2))) {
+        } else if (angle % (Math.PI / 2) === 0) {
             graph.sinLabel = graph.label([Math.cos(angle), Math.sin(angle) / 2], sinText, "right");
         } else if (graph.quadrant === 1) {
             graph.cosLabel = graph.label([Math.cos(angle) / 2, 0], cosText, "below");
@@ -386,18 +390,29 @@ $.extend(KhanUtil, {
     },
 
 
-    showCoordinates: function(angle) {
+    showCoordinates: function(angle, highlightCoord) {
         var graph = KhanUtil.currentGraph;
         if (graph.degrees) {
             angle *= (Math.PI / 180);
         }
 
-        var coordText = "(" + KhanUtil.roundTo(3, Math.cos(angle)) + ", " + KhanUtil.roundTo(3, Math.sin(angle)) + ")";
-
         graph.style({stroke: 0, fill: KhanUtil.BLUE}, function() {
             graph.circle([Math.cos(angle), Math.sin(angle)], 4 / graph.scale[0]);
         });
         graph.dragPoint.toFront();
+
+        var xCoord = KhanUtil.roundTo(3, Math.cos(angle));
+        var yCoord = KhanUtil.roundTo(3, Math.sin(angle));
+        
+        if (highlightCoord === 'x') {
+            xCoord = "\\pink{" + xCoord + "}";
+        }
+
+        if (highlightCoord === 'y') {
+            yCoord = "\\pink{" + yCoord + "}";
+        }
+
+        var coordText = "(" + xCoord + ", " + yCoord + ")";
 
         if (Math.floor(angle / Math.PI) % 2) {
             graph.coordLabel = graph.label([Math.cos(angle), Math.sin(angle)], coordText, "below");
@@ -406,5 +421,7 @@ $.extend(KhanUtil, {
         }
 
     }
+
+});
 
 });

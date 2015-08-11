@@ -27,7 +27,7 @@ pack = [
 origwd = os.getcwd()
 tempdir = tempfile.mkdtemp()
 mjdir = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                     "../utils/MathJax/2.1"))
+                                     "../third_party/MathJax/2.1"))
 
 if os.path.isdir(mjdir):
     print "%s exists, exiting" % mjdir
@@ -39,7 +39,7 @@ else:
 os.chdir(tempdir)
 
 print "Downloading MathJax..."
-os.system('curl -# -L -o mathjax.zip https://github.com/mathjax/MathJax/zipball/v2.1')
+os.system('curl -# -L -o mathjax.zip https://github.com/mathjax/MathJax/archive/2.1.0.zip')
 
 print "Unzipping..."
 os.system('unzip -q mathjax.zip')
@@ -47,7 +47,7 @@ os.unlink('mathjax.zip')
 
 try:
     os.chdir((path for path in os.listdir(".")
-              if path.startswith("mathjax-")).next())
+              if path.startswith("MathJax-")).next())
 except:
     print "Error unzipping mathjax.js"
     sys.exit(1)
@@ -152,5 +152,10 @@ os.chdir(origwd)
 shutil.rmtree(tempdir)
 
 print "Done. You probably want to run:"
-print "  git add -A utils/MathJax"
+print "  git add -A third_party/MathJax"
 print "to remove deleted files from git."
+print "You should also update all the places "
+print "that import MathJax.js. Right now, this"
+print "is khan-exercise.js and socrates.js, "
+print "but you should try grepping for \"config=KAthJax\""
+print "to find any others, too."

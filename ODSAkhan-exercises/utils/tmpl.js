@@ -1,4 +1,6 @@
-(function() {
+define(function(require) {
+
+var crc32 = require("./crc32.js");
 
 var localMode;
 
@@ -220,15 +222,13 @@ $.tmpl = {
         // We need to compute the value
         var code = elem.nodeName ? $(elem).text() : elem;
 
-        // Make sure any HTML formatting is stripped
-        code = $.trim($.tmpl.cleanHTML(code));
-
         // If no extra context was passed, use an empty object
         if (ctx == null) {
             ctx = {};
         }
 
         function doEval() {
+            /* jshint -W085 */
             // Use the methods from JavaScript's built-in Math methods
             with (Math) {
                 // And the methods provided by the library
@@ -242,6 +242,7 @@ $.tmpl = {
                     }
                 }
             }
+            /* jshint +W085 */
         }
 
         if (Khan.query.debug != null) {
@@ -282,14 +283,9 @@ $.tmpl = {
 
         // Just convert top-level values to strings instead of recursively
         // stringifying, due to issues with circular references.
-        return KhanUtil.crc32(JSON.stringify($.map(VARS, function(value, key) {
+        return crc32(JSON.stringify($.map(VARS, function(value, key) {
             return [key, String(value)];
         })));
-    },
-
-    // Make sure any HTML formatting is stripped
-    cleanHTML: function(text) {
-        return ("" + text).replace(/&gt;/g, ">").replace(/&lt;/g, "<").replace(/&amp;/g, "&");
     }
 };
 
@@ -335,7 +331,6 @@ $.fn.tmpl = function() {
 
         // If undefined, do nothing
         } else if (ret === undefined) {
-;
 
         // If a (possibly-empty) array of nodes, replace this one with those
         // The type of ret is checked to ensure it is not a function
@@ -453,29 +448,31 @@ $.fn.tmpl = function() {
 
     // Run through the attr and type processors, return as soon as one of them is decisive about a plan of action
     function process(elem, post) {
-        var ret, newElem,
+        var ret,
             $elem = $(elem);
 
         // Look through each of the attr processors, see if our element has the matching attribute
         for (var attr in $.tmpl.attr) {
-            var value;
+            if ($.tmpl.attr.hasOwnProperty(attr)) {
+                var value;
 
-            if ((/^data-/).test(attr)) {
-                value = $elem.data(attr.replace(/^data-/, ""));
-            } else {
-                value = $elem.attr(attr);
-            }
+                if ((/^data-/).test(attr)) {
+                    value = $elem.data(attr.replace(/^data-/, ""));
+                } else {
+                    value = $elem.attr(attr);
+                }
 
-            if (value !== undefined) {
-                ret = $.tmpl.attr[attr](elem, value);
+                if (value !== undefined) {
+                    ret = $.tmpl.attr[attr](elem, value);
 
-                // If a function, run after all of the other templating
-                if (typeof ret === "function") {
-                    post.push(ret);
+                    // If a function, run after all of the other templating
+                    if (typeof ret === "function") {
+                        post.push(ret);
 
-                // Return anything else (boolean, array of nodes for replacement, object for data-each)
-                } else if (ret !== undefined) {
-                    return ret;
+                    // Return anything else (boolean, array of nodes for replacement, object for data-each)
+                    } else if (ret !== undefined) {
+                        return ret;
+                    }
                 }
             }
         }
@@ -643,4 +640,4 @@ $.extend({
     }
 });
 
-})();
+});

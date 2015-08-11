@@ -1,10 +1,12 @@
+define(function(require) {
+
 $.extend(KhanUtil, {
     Polygon: function(numSides) {
         // This should be renamed...
         // these are the angles between diagonals
         // to construct the polygon.
         var angles = [],
-            points = [];
+            points = [],
             gExteriorAngles = [];
 
         function getMaxDiagonalLength(p1, p2, p3) {
@@ -48,7 +50,7 @@ $.extend(KhanUtil, {
                 points = [[0, 0], graph.polar(KhanUtil.randRange(min, max), curr)];
                 $.each(angles, function(index, angle) {
                     curr += angle;
-                    if (index == 0) {
+                    if (index === 0) {
                         length = KhanUtil.randRange(min, max);
                     } else {
                         var maxLength = getMaxDiagonalLength(points[points.length - 2], points[points.length - 1], graph.polar(min, curr));
@@ -69,7 +71,7 @@ $.extend(KhanUtil, {
             points.push([0, 0]);
             graph.path(points);
             points.pop();
-        }
+        };
 
         function drawDiagonalTriangle(start) {
             var graph = KhanUtil.currentGraph,
@@ -94,7 +96,7 @@ $.extend(KhanUtil, {
                 }
             });
             drawEndTriangles(start);
-        }
+        };
 
         this.drawRadialDiagonals = function() {
             var graph = KhanUtil.currentGraph,
@@ -113,7 +115,7 @@ $.extend(KhanUtil, {
                 });
             });
             graph.circle([cx, cy], 0.3);
-        }
+        };
 
         this.drawExteriorAngles = function() {
             var graph = KhanUtil.currentGraph,
@@ -122,7 +124,7 @@ $.extend(KhanUtil, {
             graph.style({ "stroke-dasharray": "-"});
             points.push([0, 0]);
             $.each(points, function(index, point) {
-                if (index != 0) {
+                if (index !== 0) {
                     var distance = getDistance(prevPoint, point),
                         dx = point[0] - prevPoint[0],
                         dy = point[1] - prevPoint[1],
@@ -135,7 +137,7 @@ $.extend(KhanUtil, {
                     coord[0] += prevPoint[0];
                     coord[1] += prevPoint[1];
                     graph.line(prevPoint, coord);
-                    if (index != 1) {
+                    if (index !== 1) {
                         graph.style({"stroke-dasharray": ""}, function() {
                             gExteriorAngles.push(graph.arc(prevPoint, 0.5, prevTheta, theta));
                         });
@@ -148,7 +150,7 @@ $.extend(KhanUtil, {
                 gExteriorAngles.push(graph.arc(prevPoint, 0.5, prevTheta, 360));
             });
             points.pop();
-        }
+        };
 
         function getColor(i) {
             switch (i % 4) {
@@ -173,15 +175,15 @@ $.extend(KhanUtil, {
             }
             points.pop();
             gExteriorAngles.shift();
-        }
+        };
 
         this.clone = function() {
             return $.extend(true, {}, this);
-        }
+        };
 
         this.ex = function() {
             return gExteriorAngles;
-        }
+        };
     },
 
     Circle: function(radius, center) {
@@ -194,31 +196,47 @@ $.extend(KhanUtil, {
             graph.circle(center, radius);
         })();
 
-        this.drawPoint = function(theta) {
+        this.drawPoint = function(theta, label) {
             var graph = KhanUtil.currentGraph,
                 point = graph.polar(radius, theta);
-            return graph.circle(point, pointRadius);
-        }
 
-        this.drawCenter = function() {
+            if (label) {
+                var coord = graph.polar(radius + 0.4, theta);
+                graph.label(coord, label, "center", {color: KhanUtil.BLUE});
+            }
+
+            return graph.circle(point, pointRadius);
+        };
+
+        this.drawCenter = function(label, theta) {
             var graph = KhanUtil.currentGraph;
             graph.style({ fill: KhanUtil.BLUE }, function() {
                 graph.circle(center, pointRadius);
             });
-        }
+            if (label) {
+                var coord = graph.polar(0.4, theta);
+                graph.label(coord, label, "center", {color: KhanUtil.BLUE});
+            }
+        };
 
         this.drawRadius = function(theta) {
             var graph = KhanUtil.currentGraph,
                 point = graph.polar(radius, theta);
             return graph.line(center, point);
-        }
+        };
 
         this.drawChord = function(theta1, theta2) {
             var graph = KhanUtil.currentGraph,
                 point1 = graph.polar(radius, theta1),
                 point2 = graph.polar(radius, theta2);
             return graph.line(point1, point2);
-        }
+        };
+
+        this.drawLabel = function(label, theta) {
+            var graph = KhanUtil.currentGraph,
+                coord = graph.polar(radius + 0.4, theta);
+            return graph.label(coord, label);
+        };
 
         function isThetaWithin(theta, min, max) {
             min = min % 360;
@@ -231,12 +249,8 @@ $.extend(KhanUtil, {
         }
 
         function getThetaFromXY(x, y) {
-            var angle = Math.atan(y / x);
-            if (x <= 0 && y > 0) {
-                angle += Math.PI;
-            } else if (x < 0 && y < 0) {
-                angle += Math.PI;
-            } else if (x >= 0 && y < 0) {
+            var angle = Math.atan2(y, x);
+            if (angle < 0) {
                 angle += 2 * Math.PI;
             }
             angle = angle * 180 / Math.PI;
@@ -246,36 +260,42 @@ $.extend(KhanUtil, {
         this.drawMovablePoint = function(theta, min, max) {
             var graph = KhanUtil.currentGraph,
                 point = graph.polar(radius, theta);
-                min = min || 0,
-                max = max || 360,
-                graph.graph.movable = { vertex: KhanUtil.bogusShape, arc: KhanUtil.bogusShape, chords: [KhanUtil.bogusShape, KhanUtil.bogusShape] };
+            min = min || 0;
+            max = max || 360;
+            graph.graph.movable = {
+                vertex: KhanUtil.bogusShape,
+                arc: KhanUtil.bogusShape,
+                chords: [KhanUtil.bogusShape, KhanUtil.bogusShape],
+                label: KhanUtil.bogusShape
+            };
 
             graph.graph.inscribedPoint = graph.addMovablePoint({coordX: point[0], coordY: point[1] });
 
-            graph.graph.inscribedPoint.onMove = function(x, y) {
+            graph.graph.inscribedPoint.onMove = function(x, y, label) {
                 var theta = getThetaFromXY(x, y);
                 if (!isThetaWithin(theta, min, max)) {
                     return false;
                 }
-                graph.style({stroke: KhanUtil.ORANGE});
+                graph.style({ stroke: KhanUtil.INTERACTIVE, color: KhanUtil.INTERACTIVE});
                 graph.graph.movable.arc.remove();
                 graph.graph.movable.chords[0].remove();
                 graph.graph.movable.chords[1].remove();
                 graph.graph.movable.vertex.remove();
-                graph.graph.movable = graph.graph.circle.drawInscribedAngle(theta, max, min);
+                graph.graph.movable.label.remove();
+                graph.graph.movable = graph.graph.circle.drawInscribedAngle(theta, max, min, label);
                 return graph.polar(radius, theta);
             };
-        }
+        };
 
         this.drawCentralArc = function(start, end, arcRadius) {
             var graph = KhanUtil.currentGraph,
-                arcRadius = arcRadius || 0.5,
                 arc;
+            arcRadius = arcRadius || 0.5;
             graph.style({fill: ""}, function() {
                 arc = graph.arc(center, arcRadius, start, end);
             });
             return arc;
-        }
+        };
 
         this.drawCentralAngle = function(start, end, arcRadius) {
             var result = { radii: [] };
@@ -283,7 +303,7 @@ $.extend(KhanUtil, {
             result.radii.push(this.drawRadius(end));
             result.arc = this.drawCentralArc(start, end, arcRadius);
             return result;
-        }
+        };
 
         this.drawInscribedArc = function(inscribed, start, end, arcRadius) {
             var graph = KhanUtil.currentGraph,
@@ -292,20 +312,22 @@ $.extend(KhanUtil, {
                 point2 = graph.polar(radius, end),
                 theta1 = getThetaFromXY(point1[0] - vertex[0], point1[1] - vertex[1]),
                 theta2 = getThetaFromXY(point2[0] - vertex[0], point2[1] - vertex[1]),
-                arcRadius = arcRadius || 0.5,
                 arc;
+            arcRadius = arcRadius || 0.5;
             graph.style({ fill: "" }, function() {
                 arc = graph.arc(vertex, arcRadius, theta1, theta2);
             });
             return arc;
-        }
+        };
 
-        this.drawInscribedAngle = function(inscribed, start, end, arcRadius) {
-            var graph = KhanUtil.currentGraph,
-                chords = [this.drawChord(inscribed, start), this.drawChord(inscribed, end)],
+        this.drawInscribedAngle = function(inscribed, start, end, arcRadius, label) {
+            var chords = [this.drawChord(inscribed, start), this.drawChord(inscribed, end)],
                 vertex = this.drawPoint(inscribed),
-                arc = this.drawInscribedArc(inscribed, start, end, arcRadius);
-            return { chords: chords, vertex: vertex, arc: arc };
-        }
+                arc = this.drawInscribedArc(inscribed, start, end, arcRadius),
+                label = this.drawLabel(label, inscribed);
+            return { chords: chords, vertex: vertex, arc: arc, label: label };
+        };
     }
+});
+
 });

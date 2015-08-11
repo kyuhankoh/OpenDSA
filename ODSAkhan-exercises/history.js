@@ -48,7 +48,7 @@ function renderReadOnlyProblem(event, args) {
                 })
                 .data("disabled", true);
             return this;
-        }
+        };
 
         $.fn.enable = function() {
             this.removeClass("disabled")
@@ -57,7 +57,7 @@ function renderReadOnlyProblem(event, args) {
                 })
                 .data("disabled", false);
             return this;
-        }
+        };
 
         if (userExercise.totalDone === 0) {
             $("#previous-problem").disable();
@@ -159,9 +159,9 @@ function renderReadOnlyProblem(event, args) {
                                 // backwards-compatible code in 7/13
                                 $("<p class='solution'>" +
                                   (guess.value != null ? guess.value : guess) +
-                                  "</p>").tmpl()
+                                  "</p>").runModules()
                             );
-                            if (validator(guess)) {
+                            if (validator(guess).correct) {
                                 thissolutionarea
                                     .removeClass("incorrect-activity")
                                     .addClass("correct-activity");
@@ -170,7 +170,7 @@ function renderReadOnlyProblem(event, args) {
                                 thissolutionarea.attr("title", $._("Incorrect Answer"));
                             }
                         } else if (answerType === "custom") {
-                            if (validator(guess)) {
+                            if (validator(guess).correct) {
                                 thissolutionarea
                                     .removeClass("incorrect-activity")
                                     .addClass("correct-activity");
@@ -192,7 +192,7 @@ function renderReadOnlyProblem(event, args) {
 
                             thisAnswerData.showGuess(guess);
 
-                            if (thisAnswerData.validator(guess) === true) {
+                            if (thisAnswerData.validator(guess).correct) {
                                 // If the user didn't get the problem right on the first try, all
                                 // answers are labelled incorrect by default
                                 thissolutionarea
@@ -314,7 +314,7 @@ function renderReadOnlyProblem(event, args) {
                 };
 
                 if (framework === "khan-exercises") {
-                    if (thisSlide.data("guess") !== undefined && $.isFunction(answerData.showCustomGuess)) {
+                    if (thisSlide.data("guess") !== undefined && _.isFunction(answerData.showCustomGuess)) {
                         KhanUtil.currentGraph = $(realWorkArea).find(".graphie").data("graphie");
                         answerData.showCustomGuess(thisSlide.data("guess"));
                         MathJax.Hub.Queue(recordState);

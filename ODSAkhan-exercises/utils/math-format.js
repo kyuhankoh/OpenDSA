@@ -1,7 +1,13 @@
+define(function(require) {
+
+require("./math.js");
+require("./expressions.js");
+
 $.extend(KhanUtil, {
     /* Wraps a number in paretheses if it's negative. */
-    negParens: function(n) {
-        return n < 0 ? "(" + n + ")" : n;
+    negParens: function(n, color) {
+        var n2 = color ? "\\" + color + "{" + n + "}" : n;
+        return n < 0 ? "(" + n2 + ")" : n2;
     },
 
     /* Wrapper for `fraction` which takes a decimal instead of a numerator and
@@ -143,7 +149,7 @@ $.extend(KhanUtil, {
      * If niceAngle is truthy, it also delivers more natural values for 0 (0 instead
      * of 0 \pi) and 1 (\pi instead of 1 \pi).
      * */
-    piFraction: function(num, niceAngle, tolerance) {
+    piFraction: function(num, niceAngle, tolerance, big) {
         if (num.constructor === Number) {
             if (tolerance == null) {
                 tolerance = 0.001;
@@ -161,7 +167,8 @@ $.extend(KhanUtil, {
                     return "\\pi";
                 }
             }
-            return d === 1 ? n + "\\pi" : KhanUtil.fractionSmall(n, d) + "\\pi";
+            var frac = big ? KhanUtil.fraction(n, d) : KhanUtil.fractionSmall(n, d) ;
+            return d === 1 ? n + "\\pi" : frac + "\\pi";
         }
     },
 
@@ -230,6 +237,44 @@ $.extend(KhanUtil, {
 
     squareRootCanSimplify: function(n) {
         return KhanUtil.formattedSquareRootOf(n) !== ("\\sqrt{" + n + "}");
+    },
+
+    // For numbers 0-20, return the spelling of the number, otherwise
+    // just return the number itself as a string.  This is superior to
+    // cardinal() in that it can be translated easily.
+    cardinalThrough20: function(n) {
+        var cardinalUnits = [$._("zero"), $._("one"), $._("two"), $._("three"),
+            $._("four"), $._("five"), $._("six"), $._("seven"), $._("eight"),
+            $._("nine"), $._("ten"), $._("eleven"), $._("twelve"),
+            $._("thirteen"), $._("fourteen"), $._("fifteen"), $._("sixteen"),
+            $._("seventeen"), $._("eighteen"), $._("nineteen"), $._("twenty")];
+        if (n >= 0 && n <= 20) {
+            return cardinalUnits[n];
+        }
+        return String(n);
+    },
+
+    CardinalThrough20: function(n) {
+        // NOTE(csilvers): I *think* this always does the right thing,
+        // since scripts that capitalize always do so the same way.
+        var card = KhanUtil.cardinalThrough20(n);
+        return card.charAt(0).toUpperCase() + card.slice(1);
+    },
+
+    ordinalThrough20: function(n) {
+        var ordinalUnits = [$._("zeroth"), $._("first"), $._("second"),
+            $._("third"), $._("fourth"), $._("fifth"), $._("sixth"),
+            $._("seventh"), $._("eighth"), $._("ninth"), $._("tenth"),
+            $._("eleventh"), $._("twelfth"), $._("thirteenth"),
+            $._("fourteenth"), $._("fifteenth"), $._("sixteenth"),
+            $._("seventeenth"), $._("eighteenth"), $._("nineteenth"),
+            $._("twentieth")];
+        if (n >= 0 && n <= 20) {
+            return ordinalUnits[n];
+        }
+        // This should "never" happen, but better to give weird results
+        // than to raise an error.  I think.
+        return n + "th";
     },
 
     // Ported from https://github.com/clojure/clojure/blob/master/src/clj/clojure/pprint/cl_format.clj#L285
@@ -330,24 +375,6 @@ $.extend(KhanUtil, {
         return card.charAt(0).toUpperCase() + card.slice(1);
     },
 
-    // TODO(csilvers): I18N: this is not locale-safe.
-    ordinal: function(n) {
-        if (n <= 9) {
-            return ["zeroth", "first", "second", "third", "fourth", "fifth",
-                    "sixth", "seventh", "eighth", "ninth"][n];
-        } else if (Math.floor(n / 10) % 10 === 1) {
-            // Teens
-            return n + "th";
-        } else {
-            var lastDigit = n % 10;
-            if (1 <= lastDigit && lastDigit <= 3) {
-                return n + ["st", "nd", "rd"][lastDigit - 1];
-            } else {
-                return n + "th";
-            }
-        }
-    },
-
     // Depends on expressions.js for expression formatting
     // Returns a string with the expression for the formatted roots of the quadratic
     // with coefficients a, b, c
@@ -359,15 +386,13 @@ $.extend(KhanUtil, {
         if ((b * b - 4 * a * c) === 0) {
             // 0 under the radical
             rootString += KhanUtil.fraction(-b, 2 * a, true, true, true);
-        } else if (underRadical[0] === 1) {
-            // The number under the radical cannot be simplified
-            rootString += KhanUtil.expr(["frac", ["+-", -b, ["sqrt", underRadical[1]]],
-                                                 2 * a]);
         } else if (underRadical[1] === 1) {
             // The absolute value of the number under the radical is a perfect square
-
             rootString += KhanUtil.fraction(-b + underRadical[0], 2 * a, true, true, true) + "," +
                 KhanUtil.fraction(-b - underRadical[0], 2 * a, true, true, true);
+        } else if (underRadical[0] === 1) {
+            // The number under the radical cannot be simplified
+            rootString += KhanUtil.expr(["frac", ["+-", -b, ["sqrt", underRadical[1]]], 2 * a]);
         } else {
             // under the radical can be partially simplified
             var divisor = KhanUtil.getGCD(b, 2 * a, underRadical[0]);
@@ -390,6 +415,13 @@ $.extend(KhanUtil, {
         var thousands = icu.getDecimalFormatSymbols().grouping_separator;
         var decimal = icu.getDecimalFormatSymbols().decimal_separator;
 
+        // Note that this is not actually the space character. You can find
+        // this character in the icu.XX.js files that use space separators (for
+        // example, icu.fr.js)
+        if (thousands === " ") {
+            thousands = "\\;";
+        }
+
         if (str[0].length >= 5) {
             str[0] = str[0].replace(/(\d)(?=(\d{3})+$)/g,
                                     "$1{" + thousands + "}");
@@ -400,13 +432,6 @@ $.extend(KhanUtil, {
         }
 
         return str.join(decimal);
-    },
-
-    // Rounds num to X places, and uses the proper decimal point.
-    // But does *not* insert thousands separators.
-    localeToFixed: function(num, places) {
-        var decimal = icu.getDecimalFormatSymbols().decimal_separator;
-        return num.toFixed(places).replace(".", decimal);
     },
 
     // Formats strings like "Axy + By + Cz + D" where A, B, and C are variables
@@ -432,16 +457,15 @@ $.extend(KhanUtil, {
     },
 
     _plusTrim: function(s) {
-
+        
         if (typeof s === "string" && isNaN(s)) {
 
             // extract color, so we can handle stripping the 1 out of \color{blue}{1xy}
             if (s.indexOf("{") !== -1) {
 
                 // we're expecting something like "\color{blue}{-1}..."
-                var l, r;
-                l = s.indexOf("{", s.indexOf("{") + 1) + 1;
-                r = s.indexOf("}", s.indexOf("}") + 1);
+                var l = s.indexOf("{", s.indexOf("{") + 1) + 1;
+                var r = s.indexOf("}", s.indexOf("}") + 1);
 
                 // if we've encountered \color{blue}{1}\color{xy} somehow
                 if (l !== s.lastIndexOf("{") + 1 && +KhanUtil._plusTrim(s.slice(l, r)) === 1) {
@@ -498,7 +522,7 @@ $.extend(KhanUtil, {
     // Formats a complex number in polar form.
     polarForm: function(radius, angle, useEulerForm) {
         var fraction = KhanUtil.toFraction(angle / Math.PI, 0.001);
-        var numerator = fraction[0], denominator = fraction[1];
+        var numerator = fraction[0];
 
         var equation;
         if (useEulerForm) {
@@ -513,11 +537,11 @@ $.extend(KhanUtil, {
                 equation = radius;
             } else {
                 var angleRep = KhanUtil.piFraction(angle, true);
-                var cis = "\\cos(" + angleRep + ") + i \\sin(" + angleRep + ")";
+                var cis = "\\cos \\left(" + angleRep + "\\right) + i \\sin \\left(" + angleRep + "\\right)";
 
                 // Special case to circumvent ugly "*1* (sin(...) + i cos(...))"
                 if (radius !== 1) {
-                    equation = KhanUtil.expr(["*", radius, cis]);
+                    equation = radius + "\\left(" + cis + "\\right)";
                 } else {
                     equation = cis;
                 }
@@ -526,11 +550,54 @@ $.extend(KhanUtil, {
         return equation;
     },
 
+    coefficient: function(n) {
+        if (n === 1 || n === "1") {
+            return "";
+        } else if (n === -1 || n === "-1") {
+            return "-";
+        } else {
+            return n;
+        }
+    },
+
+    fractionVariable: function(numerator, denominator, variable) {
+        variable = variable || "";
+        
+        if (denominator === 0) {
+            return "\\text{undefined}";
+        }
+
+        if (numerator === 0) {
+            return 0;
+        }
+
+        if (typeof denominator === "number") {
+            if (denominator < 0) {
+                numerator *= -1;
+                denominator *= -1;
+            }
+
+            var GCD = KhanUtil.getGCD(numerator, denominator);
+            numerator /= GCD;
+            denominator /= GCD;
+
+            if (denominator === 1) {
+                return KhanUtil.coefficient(numerator) + variable;
+            }
+        }
+
+        if (numerator < 0) {
+            return "-\\dfrac{" + KhanUtil.coefficient(-numerator) + variable + "}{" + denominator + "}";
+        } else {
+            return "\\dfrac{" + KhanUtil.coefficient(numerator) + variable + "}{" + denominator + "}";
+        }
+    },
+
     complexNumber: function(real, imaginary) {
         if (real === 0 && imaginary === 0) {
             return "0";
         } else if (real === 0) {
-            return (imaginary === 1 ? "" : imaginary === -1 ? "-" : imaginary) + "i";
+            return (KhanUtil.coefficient(imaginary)) + "i";
         } else if (imaginary === 0) {
             return real;
         } else {
@@ -538,61 +605,17 @@ $.extend(KhanUtil, {
         }
     },
 
-    // Assumes that the real and imaginary parts of integers
-    complexRegex: function(real, imaginary) {
-        var regex;
-
-        if (imaginary === 0) {
-            regex = "^\\s*";
-            regex += (real < 0 ? "[-\\u2212]\\s*" + (-real) : real) + "\\s*$";
-            return regex;
-        }
-
-        regex = "^\\s*";
-        if (imaginary < 0) {
-            regex += "[-\\u2212]\\s*";
-        }
-        if (imaginary !== 1 && imaginary !== -1) {
-            regex += Math.abs(imaginary) + "\\s*";
-        }
-        regex += "i\\s*";
-
-        if (real === 0) {
-            regex += "$";
-        } else {
-            regex = "(?:" + regex;
-            regex += real < 0 ? "[-\\u2212]" : "\\+";
-            regex += "\\s*" + Math.abs(real) + "\\s*$)|(?:^\\s*";
-
-            if (real < 0) {
-                regex += "[-\\u2212]\\s*";
-            }
-
-            regex += Math.abs(real) + "\\s*";
-            regex += imaginary < 0 ? "[-\\u2212]" : "\\+";
-            regex += "\\s*" + Math.abs(imaginary);
-
-            if (imaginary === 1 || imaginary === -1) {
-                regex += "?";
-            }
-
-            regex += "\\s*i\\s*$)";
-        }
-
-        return regex;
-    },
-
     complexFraction: function(real, realDenominator, imag, imagDenominator) {
         var ret = "";
-        if (real == 0 && imag == 0) {
+        if (real === 0 && imag === 0) {
             ret = "0";
         }
-        if (real != 0) {
+        if (real !== 0) {
             ret += KhanUtil.fraction(real, realDenominator, false, true);
         }
-        if (imag != 0) {
+        if (imag !== 0) {
             if (imag / imagDenominator > 0) {
-                if (real != 0) {
+                if (real !== 0) {
                     ret += " + ";
                 }
                 ret += KhanUtil.fraction(imag, imagDenominator, false, true) + " i";
@@ -620,7 +643,9 @@ $.extend(KhanUtil, {
 
     scientific: function(precision, num) {
         var exponent = KhanUtil.scientificExponent(num);
-        var mantissa = KhanUtil.localeToFixed(KhanUtil.scientificMantissa(precision, num), precision);
+        var mantissa = KhanUtil.localeToFixed(KhanUtil.scientificMantissa(precision, num), precision - 1);
         return "" + mantissa + "\\times 10^{" + exponent + "}";
     }
+});
+
 });

@@ -1,3 +1,5 @@
+define(function(require) {
+
 // Helper for fractions_cut_and_copy_1 and fractions_cut_and_copy_2
 $.extend(KhanUtil, {
     initSliceClone: function(goalBlocks) {
@@ -40,14 +42,14 @@ $.extend(KhanUtil, {
 
     updateGraphAndAnswer: function() {
         var pieces = KhanUtil.pieces;
-        var times;
-        for (var id in KhanUtil.times) {
-            times = KhanUtil.times[id];
+        _.each(KhanUtil.times, function(times, id) {
             KhanUtil.currentGraph = $("#problemarea").find("#" + id).data("graphie");
             KhanUtil.currentGraph.raphael.clear();
             KhanUtil.currentGraph.init({ range: [[0, 1], [0, 1]], scale: [500 / pieces * times, 25] });
             rectchart([times, 0], ["#e00", "#999"]);
             $("#" + id + "_answer input").val(KhanUtil.roundTo(3, times / pieces));
-        }
+        });
     }
+});
+
 });

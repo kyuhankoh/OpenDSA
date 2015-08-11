@@ -1,3 +1,7 @@
+define(function(require) {
+
+require("./math.js");
+
 $.extend(KhanUtil, {
     sum: function(values) {
         var sum = 0;
@@ -89,13 +93,13 @@ $.extend(KhanUtil, {
     // Pass "count" to get an array of data
     randGaussian: function(tgtMean, tgtStdDev, count) {
         if (count == null) {
-            var x1, x2, rad, y1;
+            var x1, x2, rad;
 
             do {
                 x1 = 2 * KhanUtil.random() - 1;
                 x2 = 2 * KhanUtil.random() - 1;
                 rad = x1 * x1 + x2 * x2;
-            } while (rad >= 1 || rad == 0);
+            } while (rad >= 1 || rad === 0);
 
             var c = Math.sqrt(-2 * Math.log(rad) / rad);
 
@@ -177,5 +181,7 @@ $.extend(KhanUtil, {
             "305": 0.9989, "306": 0.9989, "307": 0.9989, "308": 0.999, "309": 0.999
         }[z]);
     }
+
+});
 
 });
