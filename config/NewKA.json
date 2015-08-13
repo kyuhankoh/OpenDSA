@@ -125,6 +125,39 @@
             "threshold": 5
           }
         }
+      },
+      "NewKA/recCMultiplyPROGSumm": {
+        "long_name": "recCMultiplyPROGSumm",
+        "exercises": {
+          "recCMultiplyPROGSumm": {
+            "long_name": "recCMultiplyPROGSumm",
+            "required": true,
+            "points": 1.0,
+            "threshold": 5
+          }
+        }
+      },
+      "NewKA/recTracingSumm1": {
+        "long_name": "recTracingSumm1",
+        "exercises": {
+          "recTracingSumm1": {
+            "long_name": "recTracingSumm1",
+            "required": true,
+            "points": 1.0,
+            "threshold": 5
+          }
+        }
+      },
+      "NewKA/recTracingSumm5": {
+        "long_name": "recTracingSumm5",
+        "exercises": {
+          "recTracingSumm5": {
+            "long_name": "recTracingSumm5",
+            "required": true,
+            "points": 1.0,
+            "threshold": 5
+          }
+        }
       }
     }
   }
