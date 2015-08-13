@@ -6,7 +6,7 @@ window.Exercises = {
 
     useKatex: true,
 
-    khanExercisesUrlBase: "../../",
+    khanExercisesUrlBase: "/ODSAkhan-exercises/",
 
     getCurrentFramework: function() {
         return "khan-exercises";
