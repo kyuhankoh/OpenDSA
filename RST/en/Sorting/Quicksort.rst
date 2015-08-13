@@ -93,7 +93,7 @@ Here is an implementation for Quicksort.
 Parameters ``i`` and ``j`` define the left and right
 indices, respectively, for the subarray being sorted.
 The initial call to ``quicksort`` would be
-``quicksort(array, 0, n-1)``. 
+``quicksort(array, 0, n-1)``.
 
 .. codeinclude:: Sorting/Quicksort
    :tag: Quicksort
@@ -128,7 +128,6 @@ Here is a simple ``findpivot`` function.
 
 Now you can have some practice.
 
-.. avembed:: Exercises/Sorting/QuicksortPivotPRO.html ka
 
 We now turn to function ``partition``.
 If we knew in advance how many keys are less than the pivot,
@@ -167,7 +166,6 @@ And here is a visualization illustrating the running time analysis of the partit
 
 Now for some partition practice.
 
-.. avembed:: Exercises/Sorting/QuicksortPartitPRO.html ka
 
 Here is a visualization for the entire Quicksort algorithm.
 This visualization shows you how the logical decomposition caused by
@@ -187,10 +185,10 @@ Quicksort.
 .. showhidecontent:: QuickSortAnalysis
 
    This visualization explains the worst-case running time of Quick Sort
-   
+
    .. inlineav:: QuickSortWorstCaseCON ss
       :output: show
-   
+
    This is terrible, no better than Bubble Sort.
    When will this worst case occur?
    Only when each pivot yields a bad partitioning of the array.
@@ -246,7 +244,7 @@ Quicksort.
    (which is :math:`n!`).
    We know that some of these :math:`n!` inputs cost :math:`O(n^2)`.
    But the sum of all the permutation costs has to be
-   :math:`(n!)(O(n \log n))`. 
+   :math:`(n!)(O(n \log n))`.
    Given the extremely high cost of the worst inputs, there must be
    very few of them.
    In fact, there cannot be a constant fraction of the inputs with cost
@@ -320,12 +318,6 @@ to imitate recursion, as the amount of information that must
 be stored is small.
 We need not store copies of a subarray, only the subarray bounds.
 Furthermore, the stack depth can be kept small if care is taken on
-the order in which Quicksort's recursive calls are executed.
-We can also place the code for ``findpivot`` and
-``partition`` inline to eliminate the remaining function
-calls.
-Note however that by not processing sublists of size nine or
-less as suggested above, about three quarters of the function calls
 will already have been eliminated.
 Thus, eliminating the remaining function calls will yield only a
 modest speedup.
@@ -339,13 +331,21 @@ modest speedup.
    Quicksort to have its worst-case behavior.
 
    There are a number of possible correct answers. To assess the
-   answer, will need to run Quicksort over student's 
+   answer, will need to run Quicksort over student's
    partition, and verify that at each step it will generate new
    partitions of size 6, 5, 4, 3, 2, then 1.
 
 Now for review questions.
 
-.. avembed:: Exercises/Sorting/QuicksortSumm.html ka
+.. .. avembed:: Exercises/Sorting/BinsortMCQ2.html ka
+.. .. avembed:: Exercises/Sorting/BinsortTF1.html ka
+.. .. avembed:: Exercises/Sorting/ShellsortMCQ4.html ka
+.. .. avembed:: Exercises/Sorting/ShellsortMCQ5.html ka
+.. .. avembed:: Exercises/Sorting/SelsortFIB2.html ka
+.. avembed:: Exercises/Binary/Dprobs.html ka
+.. .. avembed:: Exercises/Sorting/BubsortPRO.html ka
+
+
 
 .. odsascript:: AV/Sorting/quicksortCODE.js
 .. odsascript:: AV/Sorting/quicksortCON.js
