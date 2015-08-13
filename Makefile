@@ -5,7 +5,7 @@ CSSOLDLINTFLAGS = --quiet --errors=empty-rules,import,errors --warnings=duplicat
 CSSLINTFLAGS = --quiet --ignore=ids,adjoining-classes
 MINIMIZE = uglifyjs
 
-.PHONY: all clean lint csslint jshint min CS2114 CS2114F15 CS223 CS5114 CS3114 CS3114notes CS150 OpenDSA test testX IS allBooks nomin pull CPSC270S15 CS2401 COP3530 CS208 ECE252 Tutorial TDDD86_2014 S15 CSCI115 CS316
+.PHONY: all clean lint csslint jshint min CS2114 CS2114F15 CS223 CS5114 CS3114 NewKA CS3114notes CS150 OpenDSA test testX IS allBooks nomin pull CPSC270S15 CS2401 COP3530 CS208 ECE252 Tutorial TDDD86_2014 S15 CSCI115 CS316
 
 all: lint
 
@@ -132,6 +132,9 @@ CS2401: min
 
 CS3114: min
 	python $(CONFIG_SCRIPT) config/CS3114.json
+
+NewKA: min
+	python $(CONFIG_SCRIPT) config/NewKA.json
 
 CS3114AM: min
 	python $(CONFIG_SCRIPT) config/CS3114AM.json
